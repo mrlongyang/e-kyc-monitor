@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: ./ekyc-monitor-backend
+      dockerfile: Dockerfile
+    container_name: ekyc-monitor-backend
+    restart: unless-stopped
+    env_file:
+      - ./ekyc-monitor-backend/.env
+    ports:
+      - "5400:4000"
+
+  frontend:
+    build:
+      context: ./ekyc-monitor-frontend
+      dockerfile: Dockerfile
+    container_name: ekyc-monitor-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8800:80"
