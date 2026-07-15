@@ -1,6 +1,6 @@
-import { buildApp } from "./app";
-import { env } from "./config/env";
-import { startMonitorJob } from "./jobs/monitor.job";
+import { env } from "./config/env.js";
+import { buildApp } from "./app.js";
+import { startMonitorJob } from "./jobs/monitor.job.js";
 
 async function start() {
   const app = await buildApp();

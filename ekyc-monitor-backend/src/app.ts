@@ -1,14 +1,14 @@
-import Fastify from "fastify";
 import cors from "@fastify/cors";
+import Fastify from "fastify";
 import websocket from "@fastify/websocket";
 
-import { servicesRoutes } from "./modules/services/services.routes";
-import { logsRoutes } from "./modules/logs/logs.routes";
-import { runRemoteCommand } from "./utils/remoteShell";
-import { systemRoutes } from "./system/system.routes";
-import { dockerRoutes } from "./docker/docker.routes";
-import { alertsRoutes } from "./alerts/alerts.routes";
-import { websocketRoutes } from "./ws/ws.routes";
+import { servicesRoutes } from "./modules/services/services.routes.js";
+import { logsRoutes } from "./modules/logs/logs.routes.js";
+import { runRemoteCommand } from "./utils/remoteShell.js";
+import { systemRoutes } from "./system/system.routes.js";
+import { dockerRoutes } from "./docker/docker.routes.js";
+import { alertsRoutes } from "./alerts/alerts.routes.js";
+import { websocketRoutes } from "./ws/ws.routes.js";
 
 
 export async function buildApp() {
