@@ -6,7 +6,11 @@
         <p>Real-time service status and alerts</p>
       </div>
 
-      <el-button type="primary" @click="loadData">Refresh</el-button>
+      <el-button
+        type="primary"
+        @click="loadDashboard"
+        :loading="loading"
+        >Refresh</el-button>
     </div>
 
     <el-row :gutter="20" class="cards">
@@ -83,99 +87,47 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
-import { getLiveServices } from "@/services/serviceApi";
-import { getActiveAlerts } from "@/services/alertsApi";
+import { computed, onMounted, ref } from "vue";
+import {
+  getDashboardServices,
+  type ServiceStatus,
+} from "../services/dashboardApi";
 
-const services = ref<any[]>([]);
-const alerts = ref<any[]>([]);
-let timer: number | undefined;
+const services = ref<ServiceStatus[]>([]);
+const alerts = ref<unknown[]>([]);
+const loading = ref(false);
+const errorMessage = ref("");
 
 const runningCount = computed(() =>
-  services.value.filter((s) => s.status === "running").length
+  services.value.filter(
+    (service) => service.status.toLowerCase() === "running",
+  ).length,
 );
 
 const downCount = computed(() =>
-  services.value.filter((s) => s.status !== "running").length
+  services.value.filter(
+    (service) => service.status.toLowerCase() !== "running",
+  ).length,
 );
 
 function getStatusType(status: string) {
-  if (status === "running") return "success";
-  if (status === "exited") return "danger";
-  return "warning";
+  return status.toLowerCase() === "running" ? "success" : "danger";
 }
 
-async function loadData() {
-  services.value = await getLiveServices();
-  alerts.value = await getActiveAlerts();
+async function loadDashboard() {
+  loading.value = true;
+  errorMessage.value = "";
+
+  try {
+    services.value = await getDashboardServices();
+  } catch (error) {
+    console.error("Failed to load dashboard:", error);
+    services.value = [];
+    errorMessage.value = "Unable to load service data.";
+  } finally {
+    loading.value = false;
+  }
 }
 
-onMounted(() => {
-  loadData();
-  timer = window.setInterval(loadData, 30000);
-});
-
-onUnmounted(() => {
-  if (timer) clearInterval(timer);
-});
+onMounted(loadDashboard);
 </script>
-
-<style scoped>
-.dashboard {
-  padding: 10px;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 28px;
-}
-
-.header p {
-  margin: 6px 0 0;
-  color: #6b7280;
-}
-
-.cards {
-  margin-bottom: 24px;
-}
-
-.card-title {
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.card-number {
-  font-size: 38px;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-.success {
-  color: #16a34a;
-}
-
-.danger {
-  color: #dc2626;
-}
-
-.warning {
-  color: #f59e0b;
-}
-
-.alert-box {
-  margin-bottom: 24px;
-}
-
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-</style>
