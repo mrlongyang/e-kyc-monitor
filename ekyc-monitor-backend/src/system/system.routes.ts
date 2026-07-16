@@ -4,7 +4,7 @@ import {
   getMemoryUsage,
   getDiskUsage,
   getSystemHealth,
-} from "./system.service";
+} from "./system.service.js";
 
 export async function systemRoutes(app: FastifyInstance) {
   app.get("/api/system/cpu", async () => {

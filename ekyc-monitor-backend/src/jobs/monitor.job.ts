@@ -1,11 +1,11 @@
 import cron from "node-cron";
-import { getLiveDockerServices } from "../modules/services/services.live";
-import { getDockerStats } from "../docker/docker.service";
+import { getLiveDockerServices } from "../modules/services/services.live.js";
+import { getDockerStats } from "../docker/docker.service.js";
 import {
   createAlert,
   hasActiveAlert,
   resolveAlert,
-} from "../alerts/alerts.service";
+} from "../alerts/alerts.service.js";
 
 let latestServices: any[] = [];
 let latestDockerStats: any[] = [];

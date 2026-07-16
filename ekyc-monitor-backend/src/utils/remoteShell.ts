@@ -1,5 +1,5 @@
 import { Client } from "ssh2";
-import { env } from "../config/env";
+import { env } from "../config/env.js";
 
 export function runRemoteCommand(command: string): Promise<string> {
   return new Promise((resolve, reject) => {

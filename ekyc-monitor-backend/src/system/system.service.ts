@@ -1,4 +1,4 @@
-import { runRemoteSudoCommand } from "../utils/remoteShell";
+import { runRemoteSudoCommand } from "../utils/remoteShell.js";
 
 export async function getCpuUsage() {
   const command = `

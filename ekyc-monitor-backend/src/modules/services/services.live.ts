@@ -1,5 +1,5 @@
-import { env } from "../../config/env";
-import { runRemoteCommand } from "../../utils/remoteShell";
+import { env } from "../../config/env.js";
+import { runRemoteCommand } from "../../utils/remoteShell.js";
 
 export async function getLiveDockerServices() {
   const command = `
@@ -26,7 +26,7 @@ export async function getLiveDockerServices() {
   return serviceNames.map((name) => {
     const line = output
       .split("\n")
-      .find((row) => row.startsWith(name));
+      .find((row: string) => row.startsWith(name));
 
     let status = "unknown";
 

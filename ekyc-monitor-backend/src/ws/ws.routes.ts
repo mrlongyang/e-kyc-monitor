@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { addClient } from "./wsHub";
+import { addClient } from "./wsHub.js";
 
 export async function websocketRoutes(app: FastifyInstance) {
   app.get("/ws", { websocket: true }, (socket) => {

@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { getAlerts, getActiveAlerts } from "./alerts.service";
+import { getAlerts, getActiveAlerts } from "./alerts.service.js";
 
 export async function alertsRoutes(app: FastifyInstance) {
   app.get("/api/alerts", async () => {

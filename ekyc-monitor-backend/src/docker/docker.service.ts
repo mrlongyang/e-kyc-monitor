@@ -1,4 +1,4 @@
-import { runRemoteSudoCommand } from "../utils/remoteShell";
+import { runRemoteSudoCommand } from "../utils/remoteShell.js";
 
 export async function getDockerStats() {
   const command = `
@@ -11,7 +11,7 @@ export async function getDockerStats() {
     .trim()
     .split("\n")
     .filter(Boolean)
-    .map((line) => {
+    .map((line: string) => {
       const [name, cpu, memory, memoryPercent, networkIO, blockIO] =
         line.split("|");
 
