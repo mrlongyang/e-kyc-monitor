@@ -14,6 +14,9 @@ services:
     build:
       context: ./ekyc-monitor-frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://10.1.11.179:5400
+        VITE_WS_URL: ws://10.1.11.179:5400
     container_name: ekyc-monitor-frontend
     restart: unless-stopped
     depends_on:
