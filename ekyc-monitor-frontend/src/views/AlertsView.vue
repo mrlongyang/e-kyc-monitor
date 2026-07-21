@@ -37,8 +37,6 @@ async function loadAlerts() {
   alerts.value = await getActiveAlerts();
 }
 
-
-
 onMounted(loadAlerts);
 </script>
 
