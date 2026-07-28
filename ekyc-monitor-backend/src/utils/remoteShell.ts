@@ -7,6 +7,9 @@ export function executeRemoteCommand(command: string): Promise<string> {
 
     connection
       .on("ready", () => {
+        console.log(`[SSH] Connected to ${env.SSH_HOST}`);
+        console.log(`[SSH] Executing: ${command}`);
+
         connection.exec(command, (error, stream) => {
           if (error) {
             connection.end();
@@ -17,31 +20,37 @@ export function executeRemoteCommand(command: string): Promise<string> {
           let stdout = "";
           let stderr = "";
 
-          stream
-            .on("close", (code: number) => {
-              connection.end();
-
-              if (code !== 0) {
-                reject(
-                  new Error(
-                    stderr || `Remote command failed with code ${code}`,
-                  ),
-                );
-                return;
-              }
-
-              resolve(stdout.trim());
-            })
-            .on("data", (data: Buffer) => {
-              stdout += data.toString();
-            });
+          stream.on("data", (data: Buffer) => {
+            stdout += data.toString();
+          });
 
           stream.stderr.on("data", (data: Buffer) => {
             stderr += data.toString();
           });
+
+          stream.on("close", (code: number | null) => {
+            connection.end();
+
+            console.log(`[SSH] Exit code: ${code}`);
+
+            if (code !== 0) {
+              reject(
+                new Error(
+                  stderr.trim() ||
+                    `Remote command failed with exit code ${code}`,
+                ),
+              );
+              return;
+            }
+
+            resolve(stdout.trim());
+          });
         });
       })
-      .on("error", reject)
+      .on("error", (error) => {
+        console.error("[SSH] Connection error:", error);
+        reject(error);
+      })
       .connect({
         host: env.SSH_HOST,
         port: env.SSH_PORT,
@@ -49,4 +58,22 @@ export function executeRemoteCommand(command: string): Promise<string> {
         password: env.SSH_PASSWORD,
       });
   });
+}
+
+/**
+ * Normal remote command.
+ *
+ * Existing modules in your project import this function name.
+ */
+export function runRemoteCommand(command: string): Promise<string> {
+  return executeRemoteCommand(command);
+}
+
+/**
+ * Remote command requiring sudo.
+ *
+ * This assumes the SSH user can run the command with passwordless sudo.
+ */
+export function runRemoteSudoCommand(command: string): Promise<string> {
+  return executeRemoteCommand(`sudo -n ${command}`);
 }

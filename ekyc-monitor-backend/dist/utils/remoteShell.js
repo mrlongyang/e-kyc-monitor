@@ -1,17 +1,16 @@
 import { Client } from "ssh2";
 import { env } from "../config/env.js";
-export function runRemoteCommand(command) {
+export function executeRemoteCommand(command) {
     return new Promise((resolve, reject) => {
-        const conn = new Client();
-        conn
-            .on("keyboard-interactive", (_name, _instructions, _lang, prompts, finish) => {
-            finish(prompts.map(() => env.SSH_PASSWORD));
-        })
+        const connection = new Client();
+        connection
             .on("ready", () => {
-            conn.exec(command, (err, stream) => {
-                if (err) {
-                    conn.end();
-                    reject(err);
+            console.log(`[SSH] Connected to ${env.SSH_HOST}`);
+            console.log(`[SSH] Executing: ${command}`);
+            connection.exec(command, (error, stream) => {
+                if (error) {
+                    connection.end();
+                    reject(error);
                     return;
                 }
                 let stdout = "";
@@ -22,30 +21,43 @@ export function runRemoteCommand(command) {
                 stream.stderr.on("data", (data) => {
                     stderr += data.toString();
                 });
-                stream.on("close", () => {
-                    conn.end();
-                    resolve(stdout || stderr);
+                stream.on("close", (code) => {
+                    connection.end();
+                    console.log(`[SSH] Exit code: ${code}`);
+                    if (code !== 0) {
+                        reject(new Error(stderr.trim() ||
+                            `Remote command failed with exit code ${code}`));
+                        return;
+                    }
+                    resolve(stdout.trim());
                 });
             });
         })
-            .on("error", (err) => {
-            reject(new Error(`SSH connection error: ${err.message}`));
+            .on("error", (error) => {
+            console.error("[SSH] Connection error:", error);
+            reject(error);
         })
             .connect({
             host: env.SSH_HOST,
             port: env.SSH_PORT,
             username: env.SSH_USERNAME,
             password: env.SSH_PASSWORD,
-            tryKeyboard: true,
-            readyTimeout: 10000,
         });
     });
 }
-export async function runRemoteSudoCommand(command) {
-    const sudoCommand = `
-    echo "${env.SSH_PASSWORD}" | sudo -S bash -c '
-      ${command}
-    '
-  `;
-    return runRemoteCommand(sudoCommand);
+/**
+ * Normal remote command.
+ *
+ * Existing modules in your project import this function name.
+ */
+export function runRemoteCommand(command) {
+    return executeRemoteCommand(command);
+}
+/**
+ * Remote command requiring sudo.
+ *
+ * This assumes the SSH user can run the command with passwordless sudo.
+ */
+export function runRemoteSudoCommand(command) {
+    return executeRemoteCommand(`sudo -n ${command}`);
 }
