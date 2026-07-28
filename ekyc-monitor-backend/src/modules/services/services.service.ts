@@ -5,3 +5,40 @@ import { services } from "../../db/schema.js";
 export async function getAllServices() {
   return db.select().from(services);
 }
+
+import { executeRemoteCommand } from "../../utils/remoteShell.js";
+const ALLOWED_SERVICES = [
+  "bio-assay",
+  "bio-auth",
+  "bio-facerecognition",
+  "bio-fingerprint",
+  "bio-gateway",
+  "bio-oam",
+  "bio-ocr",
+  "bio-oss",
+] as const;
+
+const ALLOWED_ACTIONS = ["start", "stop", "restart"] as const;
+
+type ServiceAction = (typeof ALLOWED_ACTIONS)[number];
+
+export async function controlDockerService(
+  serviceName: string,
+  action: ServiceAction,
+): Promise<string> {
+  if (!ALLOWED_SERVICES.includes(serviceName as never)) {
+    throw new Error("Service is not allowed");
+  }
+
+  if (!ALLOWED_ACTIONS.includes(action)) {
+    throw new Error("Action is not allowed");
+  }
+
+  const composeDirectory = "/home/fbadmin/FeelBiometric/feelbiometric2.1_docker_installation/fb";
+
+  const command =
+    `cd ${composeDirectory} && ` +
+    `docker compose ${action} ${serviceName}`;
+
+  return executeRemoteCommand(command);
+}
