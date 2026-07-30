@@ -1,6 +1,15 @@
 import api from "./axios";
 
-export type ServiceAction = "start" | "stop" | "restart";
+export interface ServiceStatus {
+  name: string;
+  status: string;
+  raw: string | null;
+}
+
+export type ServiceAction =
+  | "start"
+  | "stop"
+  | "restart";
 
 export interface ControlServiceResponse {
   success: boolean;
@@ -8,6 +17,14 @@ export interface ControlServiceResponse {
   output?: string;
 }
 
+export async function getLiveServices(): Promise<ServiceStatus[]> {
+  const response =
+    await api.get<ServiceStatus[]>(
+      "/api/services/live",
+    );
+
+  return response.data;
+}
 
 export async function controlService(
   serviceName: string,
