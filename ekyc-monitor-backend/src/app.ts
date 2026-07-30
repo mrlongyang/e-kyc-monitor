@@ -21,7 +21,7 @@ export async function buildApp() {
   await app.register(websocket);
   await app.register(websocketRoutes);
 
-  await app.register(servicesRoutes);
+  await app.register(servicesRoutes, { prefix: "/api/services" });
   await app.register(logsRoutes);
   await app.register(systemRoutes);
   await app.register(dockerRoutes);

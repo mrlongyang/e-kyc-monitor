@@ -4,7 +4,9 @@ import { startMonitorJob } from "./jobs/monitor.job.js";
 
 async function start() {
   const app = await buildApp();
-
+  await app.ready();
+  console.log(app.printRoutes());
+  
   startMonitorJob();
 
   await app.listen({
