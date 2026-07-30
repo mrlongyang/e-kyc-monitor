@@ -1,7 +1,25 @@
-import axios from "./axios";
+import api from "./axios";
+
+export type ServiceAction = "start" | "stop" | "restart";
+
+export interface ControlServiceResponse {
+  success: boolean;
+  message: string;
+  output?: string;
+}
 
 
-export async function getLiveServices() {
-  const res = await axios.get("/api/services/live");
-  return res.data;
+export async function controlService(
+  serviceName: string,
+  action: ServiceAction,
+): Promise<ControlServiceResponse> {
+  const response =
+    await api.post<ControlServiceResponse>(
+      `/api/services/${encodeURIComponent(serviceName)}/control`,
+      {
+        action,
+      },
+    );
+
+  return response.data;
 }
