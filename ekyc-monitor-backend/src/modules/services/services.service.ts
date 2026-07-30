@@ -1,12 +1,6 @@
-// src/modules/services/services.service.ts
-import { db } from "../../db/index.js";
-import { services } from "../../db/schema.js";
+import { env } from "../../config/env.js";
+import { runRemoteCommand } from "../../utils/remoteShell.js";
 
-export async function getAllServices() {
-  return db.select().from(services);
-}
-
-import { executeRemoteCommand } from "../../utils/remoteShell.js";
 const ALLOWED_SERVICES = [
   "bio-assay",
   "bio-auth",
@@ -21,24 +15,34 @@ const ALLOWED_SERVICES = [
 const ALLOWED_ACTIONS = ["start", "stop", "restart"] as const;
 
 type ServiceAction = (typeof ALLOWED_ACTIONS)[number];
+type AllowedService = (typeof ALLOWED_SERVICES)[number];
+
+function isAllowedService(serviceName: string): serviceName is AllowedService {
+  return ALLOWED_SERVICES.includes(serviceName as AllowedService);
+}
+
+function isAllowedAction(action: string): action is ServiceAction {
+  return ALLOWED_ACTIONS.includes(action as ServiceAction);
+}
 
 export async function controlDockerService(
   serviceName: string,
   action: ServiceAction,
 ): Promise<string> {
-  if (!ALLOWED_SERVICES.includes(serviceName as never)) {
-    throw new Error("Service is not allowed");
+  if (!isAllowedService(serviceName)) {
+    throw new Error(`Service '${serviceName}' is not allowed`);
   }
 
-  if (!ALLOWED_ACTIONS.includes(action)) {
-    throw new Error("Action is not allowed");
+  if (!isAllowedAction(action)) {
+    throw new Error(`Action '${action}' is not allowed`);
   }
 
-  const composeDirectory = "/home/fbadmin/FeelBiometric/feelbiometric2.1_docker_installation/fb";
+  const command = `
+    echo "${env.SSH_PASSWORD}" | sudo -S bash -c '
+      cd ${env.SSH_WORKDIR} &&
+      docker-compose ${action} ${serviceName}
+    '
+  `;
 
-  const command =
-    `cd ${composeDirectory} && ` +
-    `docker compose ${action} ${serviceName}`;
-
-  return executeRemoteCommand(command);
+  return runRemoteCommand(command);
 }

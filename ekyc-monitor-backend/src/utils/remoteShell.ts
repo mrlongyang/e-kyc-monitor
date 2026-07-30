@@ -8,7 +8,7 @@ export function executeRemoteCommand(command: string): Promise<string> {
     connection
       .on("ready", () => {
         console.log(`[SSH] Connected to ${env.SSH_HOST}`);
-        console.log(`[SSH] Executing: ${command}`);
+        console.log("[SSH] Executing approved service-control command");
 
         connection.exec(command, (error, stream) => {
           if (error) {
