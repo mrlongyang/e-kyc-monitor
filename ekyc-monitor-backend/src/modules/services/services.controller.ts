@@ -16,6 +16,7 @@ export async function controlServiceHandler(
   }>,
   reply: FastifyReply,
 ) {
+  
   const { serviceName } = request.params;
   const { action } = request.body;
 

@@ -7,12 +7,12 @@ export async function servicesRoutes(app: FastifyInstance) {
     return getLiveDockerServices();
   });
 
-    app.post<{
-    Params: {
-      serviceName: string;
-    };
-    Body: {
-      action: "start" | "stop" | "restart";
-    };
-  }>("/:serviceName/control", controlServiceHandler);
+  app.post<{
+  Params: {
+    serviceName: string;
+  };
+  Body: {
+    action: "start" | "stop" | "restart";
+  };
+}>("/:serviceName/control", controlServiceHandler);
 }

@@ -39,7 +39,7 @@ export function executeRemoteCommand(command) {
         })
             .connect({
             host: env.SSH_HOST,
-            port: env.SSH_PORT,
+            port: Number(env.SSH_PORT),
             username: env.SSH_USERNAME,
             password: env.SSH_PASSWORD,
         });

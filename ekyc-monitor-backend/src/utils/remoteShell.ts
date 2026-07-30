@@ -53,27 +53,18 @@ export function executeRemoteCommand(command: string): Promise<string> {
       })
       .connect({
         host: env.SSH_HOST,
-        port: env.SSH_PORT,
+        port: Number(env.SSH_PORT),
         username: env.SSH_USERNAME,
         password: env.SSH_PASSWORD,
       });
   });
 }
 
-/**
- * Normal remote command.
- *
- * Existing modules in your project import this function name.
- */
 export function runRemoteCommand(command: string): Promise<string> {
   return executeRemoteCommand(command);
 }
 
-/**
- * Remote command requiring sudo.
- *
- * This assumes the SSH user can run the command with passwordless sudo.
- */
+
 export function runRemoteSudoCommand(command: string): Promise<string> {
   return executeRemoteCommand(`sudo -n ${command}`);
 }
