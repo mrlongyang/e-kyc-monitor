@@ -28,6 +28,7 @@ export async function buildApp() {
   await app.register(alertsRoutes);
 
 
+
   app.get("/", async () => {
     return { message: "eKYC Monitor Backend Running" };
   });
@@ -35,6 +36,10 @@ export async function buildApp() {
   app.get("/api/test-ssh", async () => {
   const result = await runRemoteCommand("whoami && hostname && pwd");
   return { result };
+  });
+
+  app.register(logsRoutes, {
+    prefix: "/api/logs",
   });
 
   return app;
