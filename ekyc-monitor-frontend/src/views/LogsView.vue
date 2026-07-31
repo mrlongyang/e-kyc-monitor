@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { getServiceLogs } from "@/services/logsApi";
+import { getServiceErrorLogs } from "@/services/logsApi";
 
 const serviceNames = [
   "bio-assay",
@@ -34,8 +34,8 @@ const selectedService = ref("bio-auth");
 const logs = ref("");
 
 async function loadLogs() {
-  const result = await getServiceLogs(selectedService.value);
-  logs.value = result.logs || result;
+  const result = await getServiceErrorLogs(selectedService.value);
+  logs.value = JSON.stringify(result, null, 2);
 }
 </script>
 
