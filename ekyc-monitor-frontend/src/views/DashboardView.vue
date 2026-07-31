@@ -1,6 +1,4 @@
-from pathlib import Path
-
-content = r'''<template>
+<template>
   <div class="dashboard-page">
     <!-- Top header -->
     <section class="dashboard-hero">
@@ -929,6 +927,32 @@ onUnmounted(() => {
   box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
 }
 
+.app-layout {
+  min-height: 100vh;
+  background: #f5f7fb;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  width: 220px;
+  height: 100vh;
+  overflow-y: auto;
+
+  background: #111827;
+  z-index: 1000;
+}
+
+.main-content {
+  min-height: 100vh;
+  margin-left: 220px;
+  background: #f5f7fb;
+}
+
+
 .panel-header {
   display: flex;
   align-items: center;
@@ -1181,6 +1205,7 @@ onUnmounted(() => {
   line-height: 1.55;
 }
 
+
 @media (max-width: 900px) {
   .dashboard-page {
     padding: 18px;
@@ -1234,8 +1259,3 @@ onUnmounted(() => {
   }
 }
 </style>
-'''
-
-path = Path("/mnt/data/DashboardView-modern.vue")
-path.write_text(content, encoding="utf-8")
-print(path)
