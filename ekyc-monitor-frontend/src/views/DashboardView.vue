@@ -173,7 +173,7 @@
         <!-- Health -->
         <el-table-column
           label="Health"
-          min-width="220"
+          min-width="290"
         >
           <template #default="{ row }">
             <el-progress
@@ -205,7 +205,7 @@
         <!-- Actions -->
         <el-table-column
           label="Actions"
-          width="220"
+          width="290"
           fixed="right"
           align="center"
         >
@@ -219,18 +219,9 @@
                 v-if="!isRunning(row.status)"
                 type="success"
                 size="small"
-                :loading="
-                  isControlling(row.name, 'start')
-                "
-                :disabled="
-                  isAnotherCommandRunning(row.name)
-                "
-                @click="
-                  handleServiceControl(
-                    row.name,
-                    'start',
-                  )
-                "
+                :loading="isControlling(row.name, 'start')"
+                :disabled="isAnotherCommandRunning(row.name)"
+                @click="handleServiceControl(row.name, 'start')"
               >
                 Start
               </el-button>
@@ -240,18 +231,9 @@
                 v-if="isRunning(row.status)"
                 type="danger"
                 size="small"
-                :loading="
-                  isControlling(row.name, 'stop')
-                "
-                :disabled="
-                  isAnotherCommandRunning(row.name)
-                "
-                @click="
-                  handleServiceControl(
-                    row.name,
-                    'stop',
-                  )
-                "
+                :loading="isControlling(row.name, 'stop')"
+                :disabled="isAnotherCommandRunning(row.name)"
+                @click="handleServiceControl(row.name, 'stop')"
               >
                 Stop
               </el-button>
@@ -261,34 +243,125 @@
                 v-if="isRunning(row.status)"
                 type="warning"
                 size="small"
-                :loading="
-                  isControlling(row.name, 'restart')
-                "
-                :disabled="
-                  isAnotherCommandRunning(row.name)
-                "
-                @click="
-                  handleServiceControl(
-                    row.name,
-                    'restart',
-                  )
-                "
+                :loading="isControlling(row.name, 'restart')"
+                :disabled="isAnotherCommandRunning(row.name)"
+                @click="handleServiceControl(row.name, 'restart')"
               >
                 Restart
               </el-button>
+
+              <!-- Logs -->
+              <el-button
+                type="info"
+                size="small"
+                plain
+                @click="openErrorLogs(row.name)"
+              >
+                Logs
+              </el-button>
             </div>
 
-            <el-tag
+            <div
               v-else
-              type="info"
-              effect="plain"
+              class="action-buttons"
             >
-              Disabled
-            </el-tag>
+              <el-tag
+                type="info"
+                effect="plain"
+              >
+                Disabled
+              </el-tag>
+
+              <el-button
+                type="info"
+                size="small"
+                plain
+                @click="openErrorLogs(row.name)"
+              >
+                Logs
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
+    <el-dialog
+      v-model="logDialogVisible"
+      :title="`Error logs: ${selectedLogService}`"
+      width="80%"
+      destroy-on-close
+    >
+      <div
+        v-loading="logLoading"
+        class="log-dialog-content"
+      >
+        <el-empty
+          v-if="
+            !logLoading &&
+            serviceErrorLogs.length === 0
+          "
+          description="No recent errors found"
+        />
+
+        <el-table
+          v-else
+          :data="serviceErrorLogs"
+          stripe
+          max-height="520"
+        >
+          <el-table-column
+            prop="timestamp"
+            label="Time"
+            width="140"
+          />
+
+          <el-table-column
+            label="Level"
+            width="110"
+          >
+            <template #default="{ row }">
+              <el-tag
+                :type="
+                  row.level === 'error'
+                    ? 'danger'
+                    : 'warning'
+                "
+              >
+                {{ row.level }}
+              </el-tag>
+            </template>
+          </el-table-column>
+
+          <el-table-column
+            prop="message"
+            label="Message"
+            min-width="500"
+          >
+            <template #default="{ row }">
+              <pre class="log-message">
+              {{ row.message }}
+              </pre>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+
+      <template #footer>
+        <el-button
+          @click="logDialogVisible = false"
+        >
+          Close
+        </el-button>
+
+        <el-button
+          type="primary"
+          :loading="logLoading"
+          @click="openErrorLogs(selectedLogService)"
+        >
+          Refresh Logs
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -315,11 +388,16 @@ import {
   type ServiceAction,
 } from "../services/serviceApi";
 
-/*
-|--------------------------------------------------------------------------
-| State
-|--------------------------------------------------------------------------
-*/
+import {
+  getServiceErrorLogs,
+  type ServiceErrorLog,
+} from "../services/logsApi";
+
+const logDialogVisible = ref(false);
+const logLoading = ref(false);
+const selectedLogService = ref("");
+const serviceErrorLogs = ref<ServiceErrorLog[]>([]);
+
 
 const services = ref<ServiceStatus[]>([]);
 const loading = ref(false);
@@ -449,6 +527,32 @@ function isAnotherCommandRunning(
   );
 }
 
+
+async function openErrorLogs(
+  serviceName: string,
+): Promise<void> {
+  selectedLogService.value = serviceName;
+  logDialogVisible.value = true;
+  logLoading.value = true;
+  serviceErrorLogs.value = [];
+
+  try {
+    serviceErrorLogs.value =
+      await getServiceErrorLogs(serviceName, 500);
+  } catch (error) {
+    console.error(
+      `Failed to load logs for ${serviceName}:`,
+      error,
+    );
+
+    ElMessage.error(
+      `Unable to load logs for ${serviceName}`,
+    );
+  } finally {
+    logLoading.value = false;
+  }
+}
+
 /*
 |--------------------------------------------------------------------------
 | Load dashboard
@@ -573,6 +677,7 @@ async function handleServiceControl(
 | Error handling
 |--------------------------------------------------------------------------
 */
+
 
 function extractErrorMessage(
   error: unknown,
@@ -767,5 +872,18 @@ onUnmounted(() => {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+.log-dialog-content {
+  min-height: 180px;
+}
+
+.log-message {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.5;
 }
 </style>
